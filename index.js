@@ -78,7 +78,6 @@ function equals3(a, b, c) {
 }
 
 function colorWin() {
-  let cell1, cell2, cell3;
   if (equals3(board[0][0], board[0][1], board[0][2])) {
     document.getElementById("0").style.backgroundColor =
       "rgb(77, 212, 77, 0.3)";
