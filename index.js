@@ -39,7 +39,7 @@ function placeMarker(e) {
   let id = e.target.id;
   let i = Math.floor(id / 3);
   let j = id % 3;
-  if (!isOccupied(i, j)) {
+  if (board[i][j] == "") {
     let cell = document.getElementById(id.toString());
     cell.innerText = player;
     board[i][j] = player;
@@ -48,17 +48,17 @@ function placeMarker(e) {
       let num = computerMove();
       let x = Math.floor(num / 3);
       let y = num % 3;
-      gameStatus(x, y);
+      gameStatus();
     }
   }
 }
 
 function computerMove() {
-  if (checkDraw() || checkWin()) return;
+  if (checkWinner() !== null) return;
   let num = Math.floor(Math.random() * 9);
   let i = Math.floor(num / 3);
   let j = num % 3;
-  while (isOccupied(i, j)) {
+  while (board[i][j] !== "") {
     num = Math.floor(Math.random() * 9);
     i = Math.floor(num / 3);
     j = num % 3;
@@ -67,10 +67,6 @@ function computerMove() {
   let cell = document.getElementById(num.toString());
   cell.innerText = computer;
   return num;
-}
-
-function isOccupied(i, j) {
-  return board[i][j] !== "";
 }
 
 function equals3(a, b, c) {
@@ -137,60 +133,68 @@ function colorWin() {
   }
 }
 
-function checkWin() {
-  let win =
-    // Horizontal
-    equals3(board[0][0], board[0][1], board[0][2]) ||
-    equals3(board[1][0], board[1][1], board[1][2]) ||
-    equals3(board[2][0], board[2][1], board[2][2]) ||
-    // Vertical
-    equals3(board[0][0], board[1][0], board[2][0]) ||
-    equals3(board[0][1], board[1][1], board[2][1]) ||
-    equals3(board[0][2], board[1][2], board[2][2]) ||
-    // Diagonals
-    equals3(board[0][0], board[1][1], board[2][2]) ||
-    equals3(board[0][2], board[1][1], board[2][0]);
-  if (win) colorWin();
-  return win;
-}
-
-function checkDraw() {
-  let cnt = 0;
-  for (let x = 0; x < 3; x++) {
-    for (let y = 0; y < 3; y++) {
-      if (isOccupied(x, y)) {
-        cnt++;
-      }
-    }
-  }
-  return cnt === 9;
-}
-
-function gameStatus(i, j) {
+function gameStatus() {
   // Check for winner
-  if (checkWin()) {
-    if (board[i][j] === player) {
-      msg.innerText = "You Win";
-      gameOver = true;
-    } else if (board[i][j] === computer) {
-      msg.innerText = "Computer Wins";
+  let state = checkWinner();
+  if (state == null) return;
+  if (state == "X") {
+    msg.innerText = "You Win!";
+  } else if (state == "O") {
+    msg.innerText = "Computer Wins!";
+  } else if (state == "tie") {
+    msg.innerText = "It's a draw";
+  }
+  board = [
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""]
+  ];
+}
+
+function checkWinner() {
+  let winner = null;
+  // Horizontal
+  for (let i = 0; i < 3; i++) {
+    if (equals3(board[i][0], board[i][1], board[i][2])) {
+      winner = board[i][0];
       gameOver = true;
     }
-    board = [
-      ["", "", ""],
-      ["", "", ""],
-      ["", "", ""]
-    ];
   }
-  // Check for a draw
-  if (checkDraw()) {
-    msg.innerText = "It's a Tie!";
-    board = [
-      ["", "", ""],
-      ["", "", ""],
-      ["", "", ""]
-    ];
+
+  // Vertical
+  for (let i = 0; i < 3; i++) {
+    if (equals3(board[0][i], board[1][i], board[2][i])) {
+      winner = board[0][i];
+      gameOver = true;
+    }
+  }
+
+  // Diagonals
+  if (equals3(board[0][0], board[1][1], board[2][2])) {
+    winner = board[0][0];
     gameOver = true;
+  }
+
+  if (equals3(board[0][2], board[1][1], board[2][0])) {
+    winner = board[0][2];
+    gameOver = true;
+  }
+
+  colorWin();
+
+  // For Draw
+  let availableSpots = 0;
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      availableSpots++;
+    }
+  }
+
+  if (winner == null && availableSpots == 0) {
+    gameOver = true;
+    return "tie";
+  } else {
+    return winner;
   }
 }
 
