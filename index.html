@@ -2,13 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+      user-scalable="no"
+    />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="stylesheet" href="index.css" />
     <title>Tic-Tac-Toe</title>
   </head>
   <body>
-    <h1 id="Intro"></h1>
+    <h2>Tic-Tac-Toe</h2>
+    <h3 id="Intro">AI Powered by Min Max</h3>
+    <p style="color: grey; font-size: small;">Human: X | Computer: O</p>
     <table id="board">
       <tr>
         <td id="0"></td>
@@ -28,7 +34,9 @@
     </table>
 
     <div class="button"><button onclick="reset()">Reset</button></div>
-
+    <div class="footer">
+      <span class="copyright">&copy; Shivaprasad S</span>
+    </div>
     <script src="index.js"></script>
   </body>
 </html>

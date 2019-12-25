@@ -1,203 +1,231 @@
+// Single player Tic Tac Toe using minmax algorithm
+// Author: Shivaprasad
+// Date Created: 24/12/2019
+
 // Initializations
-
-let board = [
-  ["", "", ""],
-  ["", "", ""],
-  ["", "", ""]
-];
-
-let first, second;
-let player = "X";
-let computer = "O";
-
-let gameOver = false;
+let gameBoard = [" ", " ", " ", " ", " ", " ", " ", " ", " "];
+let maxPlayer = "X";
+let minPlayer = "O";
+let win = null;
 
 let msg = document.getElementById("Intro");
-
 let tab = document.getElementById("board");
-tab.addEventListener("click", placeMarker);
+tab.addEventListener("click", humanMove);
 
-// Choose first player
-
-if (Math.random() < 0.5) {
-  first = player;
-  second = computer;
-} else {
-  first = computer;
-  second = player;
-}
-
-// display who plays first
-if (first == player) {
-  msg.innerText = "You : 'X' play first";
-} else {
-  msg.innerText = "Computer : 'O' plays first";
-  computerMove();
-}
-
-function placeMarker(e) {
-  let id = e.target.id;
-  let i = Math.floor(id / 3);
-  let j = id % 3;
-  if (board[i][j] == "") {
-    let cell = document.getElementById(id.toString());
-    cell.innerText = player;
-    board[i][j] = player;
-    gameStatus(i, j);
-    if (!gameOver) {
-      let num = computerMove();
-      let x = Math.floor(num / 3);
-      let y = num % 3;
-      gameStatus();
-    }
+// Place marker on selected cell and wait for computer to move
+function humanMove(e) {
+  let player = "X";
+  let moveIndex = e.target.id;
+  // if game is over return
+  if (win || gameBoard[moveIndex] === "X" || gameBoard[moveIndex] === "O") {
+    return;
   }
-}
-
-function computerMove() {
-  if (checkWinner() !== null) return;
-  let num = Math.floor(Math.random() * 9);
-  let i = Math.floor(num / 3);
-  let j = num % 3;
-  while (board[i][j] !== "") {
-    num = Math.floor(Math.random() * 9);
-    i = Math.floor(num / 3);
-    j = num % 3;
+  let currentBoard = validMove(moveIndex, player, gameBoard);
+  if (winner(currentBoard, player)) {
+    gameBoard = currentBoard.slice(0);
+    document.getElementById(moveIndex.toString()).innerText = player;
+    win = player;
+    colorWin();
+    msg.innerText = "Game Over: You Win!";
+    return;
   }
-  board[i][j] = computer;
-  let cell = document.getElementById(num.toString());
-  cell.innerText = computer;
-  return num;
+  if (tie(currentBoard)) {
+    gameBoard = currentBoard.slice(0);
+    document.getElementById(moveIndex.toString()).innerText = player;
+    win = "D";
+    colorWin();
+    msg.innerText = "Game Over: It's a Tie!";
+    return;
+  }
+  gameBoard = currentBoard.slice(0);
+  document.getElementById(moveIndex.toString()).innerText = player;
+  player = "O";
+  moveIndex = findAiMove(currentBoard);
+  currentBoard = validMove(moveIndex, player, currentBoard);
+  if (winner(currentBoard, player)) {
+    gameBoard = currentBoard.slice(0);
+    document.getElementById(moveIndex.toString()).innerText = player;
+    win = player;
+    colorWin();
+    msg.innerText = "Game Over: Computer Wins!";
+    return;
+  }
+  if (tie(currentBoard)) {
+    gameBoard = currentBoard.slice(0);
+    document.getElementById(moveIndex.toString()).innerText = player;
+    win = "D";
+    colorWin();
+    msg.innerText = "Game Over: It's a Tie!";
+    return;
+  }
+  gameBoard = currentBoard.slice(0);
+  document.getElementById(moveIndex.toString()).innerText = player;
 }
 
 function equals3(a, b, c) {
-  return a == b && b == c && a !== "";
+  return a === b && b === c && a !== " ";
 }
 
 function colorWin() {
-  if (equals3(board[0][0], board[0][1], board[0][2])) {
-    document.getElementById("0").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("1").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("2").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[1][0], board[1][1], board[1][2])) {
-    document.getElementById("3").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("4").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("5").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[2][0], board[2][1], board[2][2])) {
-    document.getElementById("6").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("7").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("8").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[0][0], board[1][0], board[2][0])) {
-    document.getElementById("0").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("3").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("6").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[0][1], board[1][1], board[2][1])) {
-    document.getElementById("1").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("4").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("7").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[0][2], board[1][2], board[2][2])) {
-    document.getElementById("2").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("5").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("8").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[0][0], board[1][1], board[2][2])) {
-    document.getElementById("0").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("4").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("8").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  } else if (equals3(board[0][2], board[1][1], board[2][0])) {
-    document.getElementById("2").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("4").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-    document.getElementById("6").style.backgroundColor =
-      "rgb(77, 212, 77, 0.3)";
-  }
-}
-
-function gameStatus() {
-  // Check for winner
-  let state = checkWinner();
-  if (state == null) return;
-  if (state == "X") {
-    msg.innerText = "You Win!";
-  } else if (state == "O") {
-    msg.innerText = "Computer Wins!";
-  } else if (state == "tie") {
-    msg.innerText = "It's a draw";
-  }
-  board = [
-    ["", "", ""],
-    ["", "", ""],
-    ["", "", ""]
-  ];
-}
-
-function checkWinner() {
-  let winner = null;
-  // Horizontal
+  // Rows
   for (let i = 0; i < 3; i++) {
-    if (equals3(board[i][0], board[i][1], board[i][2])) {
-      winner = board[i][0];
-      gameOver = true;
+    if (equals3(gameBoard[3 * i], gameBoard[3 * i + 1], gameBoard[3 * i + 2])) {
+      document.getElementById(3 * i.toString()).style.backgroundColor =
+        "rgba(0, 255, 0, 0.2)";
+      document.getElementById((3 * i + 1).toString()).style.backgroundColor =
+        "rgba(0, 255, 0, 0.2)";
+      document.getElementById((3 * i + 2).toString()).style.backgroundColor =
+        "rgba(0, 255, 0, 0.2)";
+      return;
     }
   }
 
-  // Vertical
+  // Columns
   for (let i = 0; i < 3; i++) {
-    if (equals3(board[0][i], board[1][i], board[2][i])) {
-      winner = board[0][i];
-      gameOver = true;
+    if (equals3(gameBoard[i], gameBoard[i + 3], gameBoard[i + 6])) {
+      document.getElementById(i.toString()).style.backgroundColor =
+        "rgba(0, 255, 0, 0.2)";
+      document.getElementById((i + 3).toString()).style.backgroundColor =
+        "rgba(0, 255, 0, 0.2)";
+      document.getElementById((i + 6).toString()).style.backgroundColor =
+        "rgba(0, 255, 0, 0.2)";
+      return;
     }
   }
 
   // Diagonals
-  if (equals3(board[0][0], board[1][1], board[2][2])) {
-    winner = board[0][0];
-    gameOver = true;
+  if (equals3(gameBoard[0], gameBoard[4], gameBoard[8])) {
+    document.getElementById("0").style.backgroundColor = "rgba(0, 255, 0, 0.2)";
+    document.getElementById("4").style.backgroundColor = "rgba(0, 255, 0, 0.2)";
+    document.getElementById("8").style.backgroundColor = "rgba(0, 255, 0, 0.2)";
+    return;
   }
 
-  if (equals3(board[0][2], board[1][1], board[2][0])) {
-    winner = board[0][2];
-    gameOver = true;
+  if (equals3(gameBoard[2], gameBoard[4], gameBoard[6])) {
+    document.getElementById("2").style.backgroundColor = "rgba(0, 255, 0, 0.2)";
+    document.getElementById("4").style.backgroundColor = "rgba(0, 255, 0, 0.2)";
+    document.getElementById("6").style.backgroundColor = "rgba(0, 255, 0, 0.2)";
+    return;
   }
 
-  colorWin();
-
-  // For Draw
-  let availableSpots = 0;
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      availableSpots++;
-    }
-  }
-
-  if (winner == null && availableSpots == 0) {
-    gameOver = true;
-    return "tie";
-  } else {
-    return winner;
+  for (let i = 0; i < gameBoard.length; i++) {
+    let cell = document.getElementById(i.toString());
+    cell.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
   }
 }
 
+function winner(board, player) {
+  if (
+    (board[0] === player && board[1] === player && board[2] === player) ||
+    (board[3] === player && board[4] === player && board[5] === player) ||
+    (board[6] === player && board[7] === player && board[8] === player) ||
+    (board[0] === player && board[3] === player && board[6] === player) ||
+    (board[1] === player && board[4] === player && board[7] === player) ||
+    (board[2] === player && board[5] === player && board[8] === player) ||
+    (board[0] === player && board[4] === player && board[8] === player) ||
+    (board[2] === player && board[4] === player && board[6] === player)
+  ) {
+    return true;
+  } else {
+    return null;
+  }
+}
+
+function tie(board) {
+  let moves = board.join("").replace(/ /g, "");
+  if (moves.length === 9) {
+    return true;
+  }
+  return false;
+}
+
+function validMove(move, player, board) {
+  let newBoard = board.slice(0);
+  if (newBoard[move] === " ") {
+    newBoard[move] = player;
+    return newBoard;
+  } else {
+    return null;
+  }
+}
+
+function findAiMove(board) {
+  let bestMoveScore = 100;
+  let move = null;
+  // test all possible moves if game not over
+  if (winner(board, "X") || winner(board, "O") || tie(board)) {
+    return null;
+  }
+  for (let i = 0; i < board.length; i++) {
+    let newBoard = validMove(i, minPlayer, board);
+    if (newBoard) {
+      let moveScore = maxScore(newBoard);
+      if (moveScore < bestMoveScore) {
+        bestMoveScore = moveScore;
+        move = i;
+      }
+    }
+  }
+  return move;
+}
+
+// min max algorithm
+// minimzing player
+function minScore(board) {
+  if (winner(board, "X")) {
+    return 10;
+  } else if (winner(board, "O")) {
+    return -10;
+  } else if (tie(board)) {
+    return 0;
+  } else {
+    let bestMoveValue = 100;
+    for (let i = 0; i < board.length; i++) {
+      let newBoard = validMove(i, minPlayer, board);
+      if (newBoard) {
+        let predictedMoveValue = maxScore(newBoard);
+        if (predictedMoveValue < bestMoveValue) {
+          bestMoveValue = predictedMoveValue;
+        }
+      }
+    }
+    return bestMoveValue;
+  }
+}
+
+// maximizing player
+function maxScore(board) {
+  if (winner(board, "X")) {
+    return 10;
+  } else if (winner(board, "O")) {
+    return -10;
+  } else if (tie(board)) {
+    return 0;
+  } else {
+    let bestMoveValue = -100;
+    for (let i = 0; i < board.length; i++) {
+      let newBoard = validMove(i, maxPlayer, board);
+      if (newBoard) {
+        let predictedMoveValue = minScore(newBoard);
+        if (predictedMoveValue > bestMoveValue) {
+          bestMoveValue = predictedMoveValue;
+        }
+      }
+    }
+    return bestMoveValue;
+  }
+}
+
+// Reset
 function reset() {
-  window.location.reload();
+  for (let i = 0; i < gameBoard.length; i++) {
+    gameBoard[i] = " ";
+    let cell = document.getElementById(i.toString());
+    cell.innerText = " ";
+    cell.style.backgroundColor = "inherit";
+  }
+  msg.innerText = "AI Powered by Min Max";
+  maxPlayer = "X";
+  minPlayer = "O";
+  win = null;
 }
